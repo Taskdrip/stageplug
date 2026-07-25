@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "StageLink"
+version = "1.0.0"
+id = "artifacts/stagelink"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23407
+
+[services.development]
+run = "pnpm --filter @workspace/stagelink run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/stagelink", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/stagelink/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23407"
+BASE_PATH = "/"

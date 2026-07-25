@@ -1,22 +1,28 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: StageLink API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: users
+  - name: artists
+  - name: tracks
+  - name: events
+  - name: bookings
+  - name: posts
+  - name: competitions
+  - name: notifications
+  - name: dashboard
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +30,1589 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Users ──────────────────────────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user by ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Not found
+
+  /users/me/follow/{artistId}:
+    post:
+      operationId: followArtist
+      tags: [users]
+      summary: Follow an artist
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Followed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowResult"
+    delete:
+      operationId: unfollowArtist
+      tags: [users]
+      summary: Unfollow an artist
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Unfollowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowResult"
+
+  /users/me/following:
+    get:
+      operationId: getFollowing
+      tags: [users]
+      summary: Get artists the current user follows
+      responses:
+        "200":
+          description: Followed artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtistCard"
+
+  # ── Artists ────────────────────────────────────────────────────────────────
+  /artists:
+    get:
+      operationId: getArtists
+      tags: [artists]
+      summary: List/discover artists with filters
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: genre
+          in: query
+          schema:
+            type: string
+        - name: country
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: minBudget
+          in: query
+          schema:
+            type: integer
+        - name: maxBudget
+          in: query
+          schema:
+            type: integer
+        - name: minRating
+          in: query
+          schema:
+            type: number
+        - name: verified
+          in: query
+          schema:
+            type: boolean
+        - name: artistType
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated list of artists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtistListResponse"
+
+  /artists/trending:
+    get:
+      operationId: getTrendingArtists
+      tags: [artists]
+      summary: Get trending artists
+      responses:
+        "200":
+          description: Trending artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtistCard"
+
+  /artists/rising:
+    get:
+      operationId: getRisingArtists
+      tags: [artists]
+      summary: Get rising/new artists
+      responses:
+        "200":
+          description: Rising artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtistCard"
+
+  /artists/top-producers:
+    get:
+      operationId: getTopProducers
+      tags: [artists]
+      summary: Get top producers
+      responses:
+        "200":
+          description: Top producers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtistCard"
+
+  /artists/top-djs:
+    get:
+      operationId: getTopDJs
+      tags: [artists]
+      summary: Get top DJs
+      responses:
+        "200":
+          description: Top DJs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtistCard"
+
+  /artists/{artistId}:
+    get:
+      operationId: getArtist
+      tags: [artists]
+      summary: Get full artist profile
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Full artist profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtistProfile"
+        "404":
+          description: Not found
+
+  /artists/me:
+    get:
+      operationId: getMyArtistProfile
+      tags: [artists]
+      summary: Get own artist profile
+      responses:
+        "200":
+          description: Own artist profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtistProfile"
+    put:
+      operationId: updateArtistProfile
+      tags: [artists]
+      summary: Update own artist profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtistProfileInput"
+      responses:
+        "200":
+          description: Updated artist profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtistProfile"
+
+  /artists/{artistId}/reviews:
+    get:
+      operationId: getArtistReviews
+      tags: [artists]
+      summary: Get reviews for an artist
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      tags: [artists]
+      summary: Submit a review for an artist
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "201":
+          description: Created review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  # ── Tracks ─────────────────────────────────────────────────────────────────
+  /tracks:
+    get:
+      operationId: getTracks
+      tags: [tracks]
+      summary: Get tracks (marketplace)
+      parameters:
+        - name: genre
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: artistId
+          in: query
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tracks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Track"
+    post:
+      operationId: createTrack
+      tags: [tracks]
+      summary: Upload a new track
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackInput"
+      responses:
+        "201":
+          description: Created track
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Track"
+
+  /tracks/{trackId}:
+    get:
+      operationId: getTrack
+      tags: [tracks]
+      summary: Get a track
+      parameters:
+        - name: trackId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Track
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Track"
+    delete:
+      operationId: deleteTrack
+      tags: [tracks]
+      summary: Delete a track
+      parameters:
+        - name: trackId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Events ─────────────────────────────────────────────────────────────────
+  /events:
+    get:
+      operationId: getEvents
+      tags: [events]
+      summary: List events
+      parameters:
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: country
+          in: query
+          schema:
+            type: string
+        - name: upcoming
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create an event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/featured:
+    get:
+      operationId: getFeaturedEvents
+      tags: [events]
+      summary: Get featured events for homepage
+      responses:
+        "200":
+          description: Featured events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/upcoming:
+    get:
+      operationId: getUpcomingEvents
+      tags: [events]
+      summary: Get upcoming events (sorted by date)
+      responses:
+        "200":
+          description: Upcoming events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/{eventId}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event details
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{eventId}/buy-ticket:
+    post:
+      operationId: buyTicket
+      tags: [events]
+      summary: Buy a ticket for an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketPurchaseInput"
+      responses:
+        "201":
+          description: Ticket purchased
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+
+  # ── Bookings ───────────────────────────────────────────────────────────────
+  /bookings:
+    get:
+      operationId: getBookings
+      tags: [bookings]
+      summary: Get current user's bookings
+      responses:
+        "200":
+          description: Bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Request a booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingInput"
+      responses:
+        "201":
+          description: Created booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get booking details
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}/status:
+    patch:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Update booking status (artist accepts/declines)
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingStatusUpdate"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  # ── Posts ──────────────────────────────────────────────────────────────────
+  /posts:
+    get:
+      operationId: getPosts
+      tags: [posts]
+      summary: Get community feed posts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+    post:
+      operationId: createPost
+      tags: [posts]
+      summary: Create a community post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostInput"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+  /posts/{postId}/like:
+    post:
+      operationId: likePost
+      tags: [posts]
+      summary: Like/unlike a post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Like result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LikeResult"
+
+  /posts/{postId}/comments:
+    get:
+      operationId: getPostComments
+      tags: [posts]
+      summary: Get comments on a post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+    post:
+      operationId: createComment
+      tags: [posts]
+      summary: Comment on a post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  # ── Competitions ───────────────────────────────────────────────────────────
+  /competitions:
+    get:
+      operationId: getCompetitions
+      tags: [competitions]
+      summary: List competitions (Talent Arena)
+      responses:
+        "200":
+          description: Competitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Competition"
+
+  /competitions/{competitionId}:
+    get:
+      operationId: getCompetition
+      tags: [competitions]
+      summary: Get competition details
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Competition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Competition"
+
+  /competitions/{competitionId}/enter:
+    post:
+      operationId: enterCompetition
+      tags: [competitions]
+      summary: Enter a competition
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Entered competition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompetitionEntry"
+
+  /competitions/{competitionId}/vote/{entryId}:
+    post:
+      operationId: voteForEntry
+      tags: [competitions]
+      summary: Vote for a competition entry
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vote recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResult"
+
+  # ── Notifications ──────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get user notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: All marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationReadResult"
+
+  /notifications/{notificationId}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  # ── Dashboard ──────────────────────────────────────────────────────────────
+  /dashboard/artist:
+    get:
+      operationId: getArtistDashboard
+      tags: [dashboard]
+      summary: Get artist dashboard summary
+      responses:
+        "200":
+          description: Artist dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtistDashboard"
+
+  /dashboard/platform-stats:
+    get:
+      operationId: getPlatformStats
+      tags: [dashboard]
+      summary: Get homepage platform statistics
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStats"
+
+  /dashboard/leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [dashboard]
+      summary: Get XP leaderboard
+      responses:
+        "200":
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    # ── Users ─────────────────────────────────────────────────────────────
+    User:
+      type: object
+      required: [id, clerkId, role, displayName, xp, level, createdAt]
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        role:
+          type: string
+          enum: [artist, fan, organizer, brand, producer, dj, admin]
+        displayName:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        bio:
+          type: ["string", "null"]
+        xp:
+          type: integer
+        level:
+          type: integer
+        badges:
+          type: array
+          items:
+            type: string
+        followersCount:
+          type: integer
+        followingCount:
+          type: integer
+        createdAt:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        bio:
+          type: string
+        avatarUrl:
+          type: string
+        role:
+          type: string
+          enum: [artist, fan, organizer, brand, producer, dj]
+
+    FollowResult:
+      type: object
+      required: [following]
+      properties:
+        following:
+          type: boolean
+
+    # ── Artists ───────────────────────────────────────────────────────────
+    ArtistCard:
+      type: object
+      required: [id, displayName, artistType, genres, country, coverImageUrl, rating, followersCount, verified, xp, level]
+      properties:
+        id:
+          type: integer
+        displayName:
+          type: string
+        artistType:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        country:
+          type: string
+        city:
+          type: ["string", "null"]
+        coverImageUrl:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        followersCount:
+          type: integer
+        verified:
+          type: boolean
+        xp:
+          type: integer
+        level:
+          type: integer
+        bookingPrice:
+          type: ["integer", "null"]
+
+    ArtistProfile:
+      type: object
+      required: [id, displayName, artistType, genres, country, bio, coverImageUrl, rating, followersCount, verified, xp, level, socialLinks, tracks, isFollowedByMe]
+      properties:
+        id:
+          type: integer
+        displayName:
+          type: string
+        artistType:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            type: string
+        country:
+          type: string
+        city:
+          type: ["string", "null"]
+        bio:
+          type: string
+        coverImageUrl:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        followersCount:
+          type: integer
+        verified:
+          type: boolean
+        xp:
+          type: integer
+        level:
+          type: integer
+        badges:
+          type: array
+          items:
+            type: string
+        bookingPrice:
+          type: ["integer", "null"]
+        socialLinks:
+          $ref: "#/components/schemas/SocialLinks"
+        tracks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Track"
+        isFollowedByMe:
+          type: boolean
+
+    ArtistProfileInput:
+      type: object
+      properties:
+        displayName:
+          type: string
+        artistType:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            type: string
+        country:
+          type: string
+        city:
+          type: string
+        bio:
+          type: string
+        coverImageUrl:
+          type: string
+        avatarUrl:
+          type: string
+        bookingPrice:
+          type: integer
+        socialLinks:
+          $ref: "#/components/schemas/SocialLinks"
+
+    SocialLinks:
+      type: object
+      properties:
+        instagram:
+          type: ["string", "null"]
+        twitter:
+          type: ["string", "null"]
+        youtube:
+          type: ["string", "null"]
+        spotify:
+          type: ["string", "null"]
+        soundcloud:
+          type: ["string", "null"]
+        tiktok:
+          type: ["string", "null"]
+
+    ArtistListResponse:
+      type: object
+      required: [artists, total, page, limit]
+      properties:
+        artists:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArtistCard"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    Review:
+      type: object
+      required: [id, artistId, reviewerId, reviewerName, rating, comment, createdAt]
+      properties:
+        id:
+          type: integer
+        artistId:
+          type: integer
+        reviewerId:
+          type: integer
+        reviewerName:
+          type: string
+        reviewerAvatarUrl:
+          type: ["string", "null"]
+        rating:
+          type: number
+        comment:
+          type: string
+        createdAt:
+          type: string
+
+    ReviewInput:
+      type: object
+      required: [rating, comment]
+      properties:
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          minLength: 10
+
+    # ── Tracks ────────────────────────────────────────────────────────────
+    Track:
+      type: object
+      required: [id, artistId, title, genre, trackType, durationSeconds, coverUrl, plays, createdAt]
+      properties:
+        id:
+          type: integer
+        artistId:
+          type: integer
+        artistName:
+          type: string
+        title:
+          type: string
+        genre:
+          type: string
+        trackType:
+          type: string
+          enum: [single, album, beat, instrumental, sample]
+        durationSeconds:
+          type: integer
+        coverUrl:
+          type: string
+        audioUrl:
+          type: ["string", "null"]
+        price:
+          type: ["integer", "null"]
+        plays:
+          type: integer
+        likes:
+          type: integer
+        createdAt:
+          type: string
+
+    TrackInput:
+      type: object
+      required: [title, genre, trackType, durationSeconds, coverUrl]
+      properties:
+        title:
+          type: string
+        genre:
+          type: string
+        trackType:
+          type: string
+          enum: [single, album, beat, instrumental, sample]
+        durationSeconds:
+          type: integer
+        coverUrl:
+          type: string
+        audioUrl:
+          type: string
+        price:
+          type: integer
+
+    # ── Events ────────────────────────────────────────────────────────────
+    Event:
+      type: object
+      required: [id, organizerId, title, description, venue, city, country, eventDate, ticketPrice, totalTickets, soldTickets, coverImageUrl, status, featured, createdAt]
+      properties:
+        id:
+          type: integer
+        organizerId:
+          type: integer
+        organizerName:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        venue:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        eventDate:
+          type: string
+        ticketPrice:
+          type: integer
+        totalTickets:
+          type: integer
+        soldTickets:
+          type: integer
+        coverImageUrl:
+          type: string
+        status:
+          type: string
+          enum: [upcoming, live, ended, cancelled]
+        featured:
+          type: boolean
+        artists:
+          type: array
+          items:
+            $ref: "#/components/schemas/ArtistCard"
+        createdAt:
+          type: string
+
+    EventInput:
+      type: object
+      required: [title, description, venue, city, country, eventDate, ticketPrice, totalTickets, coverImageUrl]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        venue:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        eventDate:
+          type: string
+        ticketPrice:
+          type: integer
+        totalTickets:
+          type: integer
+        coverImageUrl:
+          type: string
+
+    Ticket:
+      type: object
+      required: [id, eventId, userId, qrCode, purchasedAt]
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        userId:
+          type: integer
+        qrCode:
+          type: string
+        purchasedAt:
+          type: string
+
+    TicketPurchaseInput:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 10
+
+    # ── Bookings ──────────────────────────────────────────────────────────
+    Booking:
+      type: object
+      required: [id, artistId, clientId, eventType, eventDate, location, budget, status, message, createdAt]
+      properties:
+        id:
+          type: integer
+        artistId:
+          type: integer
+        artistName:
+          type: string
+        artistAvatarUrl:
+          type: ["string", "null"]
+        clientId:
+          type: integer
+        clientName:
+          type: string
+        eventType:
+          type: string
+        eventDate:
+          type: string
+        location:
+          type: string
+        budget:
+          type: integer
+        status:
+          type: string
+          enum: [pending, accepted, declined, completed, cancelled]
+        message:
+          type: string
+        createdAt:
+          type: string
+
+    BookingInput:
+      type: object
+      required: [artistId, eventType, eventDate, location, budget, message]
+      properties:
+        artistId:
+          type: integer
+        eventType:
+          type: string
+        eventDate:
+          type: string
+        location:
+          type: string
+        budget:
+          type: integer
+        message:
+          type: string
+
+    BookingStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [accepted, declined, completed, cancelled]
+
+    # ── Posts ─────────────────────────────────────────────────────────────
+    Post:
+      type: object
+      required: [id, authorId, authorName, content, postType, likes, commentsCount, createdAt]
+      properties:
+        id:
+          type: integer
+        authorId:
+          type: integer
+        authorName:
+          type: string
+        authorAvatarUrl:
+          type: ["string", "null"]
+        authorRole:
+          type: string
+        content:
+          type: string
+        mediaUrl:
+          type: ["string", "null"]
+        mediaType:
+          type: ["string", "null"]
+          enum: ["image", "video", null]
+        postType:
+          type: string
+          enum: [text, image, video, music]
+        likes:
+          type: integer
+        likedByMe:
+          type: boolean
+        commentsCount:
+          type: integer
+        createdAt:
+          type: string
+
+    PostInput:
+      type: object
+      required: [content, postType]
+      properties:
+        content:
+          type: string
+          minLength: 1
+        postType:
+          type: string
+          enum: [text, image, video, music]
+        mediaUrl:
+          type: string
+        mediaType:
+          type: string
+          enum: [image, video]
+
+    Comment:
+      type: object
+      required: [id, postId, authorId, authorName, content, createdAt]
+      properties:
+        id:
+          type: integer
+        postId:
+          type: integer
+        authorId:
+          type: integer
+        authorName:
+          type: string
+        authorAvatarUrl:
+          type: ["string", "null"]
+        content:
+          type: string
+        createdAt:
+          type: string
+
+    CommentInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+
+    LikeResult:
+      type: object
+      required: [liked, likes]
+      properties:
+        liked:
+          type: boolean
+        likes:
+          type: integer
+
+    # ── Competitions ──────────────────────────────────────────────────────
+    Competition:
+      type: object
+      required: [id, title, category, description, status, prizePool, endsAt, entriesCount, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        coverImageUrl:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [open, voting, ended]
+        prizePool:
+          type: integer
+        endsAt:
+          type: string
+        entriesCount:
+          type: integer
+        myEntry:
+          $ref: "#/components/schemas/CompetitionEntry"
+        topEntries:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompetitionEntry"
+        createdAt:
+          type: string
+
+    CompetitionEntry:
+      type: object
+      required: [id, competitionId, artistId, artistName, votes]
+      properties:
+        id:
+          type: integer
+        competitionId:
+          type: integer
+        artistId:
+          type: integer
+        artistName:
+          type: string
+        artistAvatarUrl:
+          type: ["string", "null"]
+        submissionUrl:
+          type: ["string", "null"]
+        votes:
+          type: integer
+        rank:
+          type: ["integer", "null"]
+
+    VoteResult:
+      type: object
+      required: [voted, votes]
+      properties:
+        voted:
+          type: boolean
+        votes:
+          type: integer
+
+    # ── Notifications ─────────────────────────────────────────────────────
+    Notification:
+      type: object
+      required: [id, userId, type, title, message, read, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [follow, booking_request, booking_accepted, booking_declined, new_review, event_reminder, competition_update, ticket_purchased, message, reward]
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        referenceId:
+          type: ["integer", "null"]
+        referenceType:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    NotificationReadResult:
+      type: object
+      required: [count]
+      properties:
+        count:
+          type: integer
+
+    # ── Dashboard / Wow ───────────────────────────────────────────────────
+    ArtistDashboard:
+      type: object
+      required: [totalEarnings, totalBookings, pendingBookings, totalFollowers, totalTracks, totalPlays, xp, level, badges, recentBookings, recentNotifications]
+      properties:
+        totalEarnings:
+          type: integer
+        totalBookings:
+          type: integer
+        pendingBookings:
+          type: integer
+        totalFollowers:
+          type: integer
+        totalTracks:
+          type: integer
+        totalPlays:
+          type: integer
+        xp:
+          type: integer
+        level:
+          type: integer
+        badges:
+          type: array
+          items:
+            type: string
+        recentBookings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Booking"
+        recentNotifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+
+    PlatformStats:
+      type: object
+      required: [totalArtists, totalFans, totalEvents, totalBookings, totalTracks]
+      properties:
+        totalArtists:
+          type: integer
+        totalFans:
+          type: integer
+        totalEvents:
+          type: integer
+        totalBookings:
+          type: integer
+        totalTracks:
+          type: integer
+
+    LeaderboardEntry:
+      type: object
+      required: [rank, userId, displayName, xp, level, role]
+      properties:
+        rank:
+          type: integer
+        userId:
+          type: integer
+        displayName:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        xp:
+          type: integer
+        level:
+          type: integer
+        role:
+          type: string
+        badges:
+          type: array
+          items:
+            type: string
