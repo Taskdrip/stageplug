@@ -20,16 +20,16 @@ import {
 } from "@workspace/api-client-react";
 
 const heroSlides = [
-  { image: "/attached_assets/generated_images/hero-1.jpg", title: "Own the Stage", subtitle: "Connect with venues that match your energy." },
-  { image: "/attached_assets/generated_images/hero-2.jpg", title: "Find Your Sound", subtitle: "Discover the producers that elevate your voice." },
-  { image: "/attached_assets/generated_images/hero-3.jpg", title: "Electrify the Crowd", subtitle: "Book gigs that build your legacy." },
-  { image: "/attached_assets/generated_images/hero-4.jpg", title: "Master Your Craft", subtitle: "Access premium studios and collaborators." },
-  { image: "/attached_assets/generated_images/hero-5.jpg", title: "Command the Arena", subtitle: "Step into the spotlight and never look back." },
-  { image: "/attached_assets/generated_images/hero-6.jpg", title: "Unleash the Bass", subtitle: "Headlining festivals is just a click away." },
-  { image: "/attached_assets/generated_images/hero-7.jpg", title: "Spin the Night", subtitle: "The world's best clubs are looking for you." },
-  { image: "/attached_assets/generated_images/hero-8.jpg", title: "Raw Energy", subtitle: "Turn your passion into a global movement." },
-  { image: "/attached_assets/generated_images/hero-9.jpg", title: "Defy Gravity", subtitle: "Showcase your movement to millions." },
-  { image: "/attached_assets/generated_images/hero-10.jpg", title: "Build the Beat", subtitle: "Produce the next global anthem." },
+  { image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600&q=80", title: "Own the Stage", subtitle: "Connect with venues that match your energy." },
+  { image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1600&q=80", title: "Find Your Sound", subtitle: "Discover the producers that elevate your voice." },
+  { image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1600&q=80", title: "Electrify the Crowd", subtitle: "Book gigs that build your legacy." },
+  { image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1600&q=80", title: "Master Your Craft", subtitle: "Access premium studios and collaborators." },
+  { image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1600&q=80", title: "Command the Arena", subtitle: "Step into the spotlight and never look back." },
+  { image: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=1600&q=80", title: "Unleash the Bass", subtitle: "Headlining festivals is just a click away." },
+  { image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1600&q=80", title: "Spin the Night", subtitle: "The world's best clubs are looking for you." },
+  { image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&q=80", title: "Raw Energy", subtitle: "Turn your passion into a global movement." },
+  { image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&q=80", title: "Defy Gravity", subtitle: "Showcase your movement to millions." },
+  { image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1600&q=80", title: "Build the Beat", subtitle: "Produce the next global anthem." },
 ];
 
 export default function HomePage() {

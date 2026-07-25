@@ -1,0 +1,365 @@
+Replit AI Prompt – Build the MVP of a Next-Generation Global Artist Platform
+
+Build a modern, premium, responsive SaaS web application called StageLink (temporary name). This is not another music streaming platform. It is an Artist Discovery, Booking, Fan Engagement, and Career Growth Platform that helps independent artists build successful careers globally.
+
+The design should feel more premium, modern, immersive, and intuitive than SoundCloud, Audiomack, Spotify, and BandLab. Think Apple-level UI mixed with modern gaming interfaces, smooth animations, glassmorphism, dark mode, vibrant gradients, and subtle neon accents. Every interaction should feel polished.
+
+Design Requirements
+
+- Mobile-first responsive design
+- Dark luxury theme with optional light mode
+- Glassmorphism cards
+- Smooth page transitions
+- Animated gradients
+- Micro-interactions
+- Beautiful typography
+- Fast loading
+- Modern iconography
+- Premium illustrations
+- AI-generated placeholder artwork where necessary
+- Animated counters
+- Interactive statistics
+- Beautiful hover effects
+- Gamified user experience
+- Fully accessible UI
+
+Homepage
+
+The homepage should immediately communicate that this is the future of independent music.
+
+Hero Section
+
+Create a full-width animated hero slider with cinematic background images representing different features.
+
+Slides include:
+
+- Artist performing before thousands of fans
+- Concert ticketing experience
+- Brand booking an artist
+- Music producer collaborating remotely
+- DJ performing at a festival
+- Fans supporting artists
+- Independent artist recording in a studio
+- Talent competition stage
+- Global artist map
+- Music networking community
+
+Each slide should include:
+
+- Premium headline
+- Short description
+- Animated call-to-action
+- Smooth transitions
+- Background overlay
+- Floating interface elements
+
+Example headline:
+
+"Where Independent Artists Build Global Careers"
+
+Homepage Sections
+
+- Trending Artists
+- Featured Events
+- Upcoming Concerts
+- Top Producers
+- Popular DJs
+- Rising Artists
+- Featured Music Videos
+- Talent Competitions
+- Success Stories
+- Community Highlights
+- Brand Partnerships
+- Music News
+- Artist Academy
+- Global Music Map
+
+Core MVP Features
+
+Artist Profiles
+
+Artists can create professional portfolios including:
+
+- Photos
+- Music
+- Videos
+- Biography
+- Genres
+- Languages
+- City
+- Country
+- Social links
+- Awards
+- Reviews
+- Availability calendar
+- Booking price
+- Performance gallery
+
+Artist Discovery
+
+Powerful search and filters:
+
+- Country
+- State
+- City
+- Genre
+- Budget
+- Event type
+- Rating
+- Availability
+- Language
+- Verified artists
+
+Display results beautifully as interactive cards.
+
+Booking System
+
+Users can:
+
+- Book artists
+- Book DJs
+- Book MCs
+- Book bands
+- Book dancers
+- Book producers
+
+Include:
+
+- Calendar
+- Instant quote request
+- Chat
+- Booking confirmation
+- Secure escrow payment flow
+- Booking timeline
+
+Fan Dashboard
+
+Fans can:
+
+- Follow artists
+- Buy tickets
+- Purchase merchandise
+- Buy albums
+- Tip artists
+- Save playlists
+- Join fan clubs
+- Comment
+- Share performances
+
+Event Marketplace
+
+Allow organizers to:
+
+- Create events
+- Sell tickets
+- Manage attendees
+- Scan QR tickets
+- Invite artists
+- Promote concerts
+
+Music Marketplace
+
+Artists can sell:
+
+- Singles
+- Albums
+- Beats
+- Instrumentals
+- Merchandise
+- Digital downloads
+
+Community
+
+Include:
+
+- Activity feed
+- Posts
+- Photos
+- Short videos
+- Comments
+- Likes
+- Shares
+
+Think of a music-focused social network.
+
+Gamification
+
+Every user should have progression.
+
+Artists earn XP for:
+
+- Uploading music
+- Completing profiles
+- Receiving reviews
+- Booking shows
+- Winning contests
+- Selling music
+- Inviting friends
+- Daily activity
+
+Fans earn XP for:
+
+- Attending events
+- Buying tickets
+- Supporting artists
+- Sharing music
+- Daily check-ins
+
+Add:
+
+- Levels
+- Badges
+- Achievements
+- Daily rewards
+- Weekly missions
+- Seasonal challenges
+- Leaderboards
+- Milestones
+- Unlockable profile frames
+
+Everything should feel rewarding.
+
+Competitions
+
+Create a Talent Arena.
+
+Artists can enter competitions.
+
+Examples:
+
+- Rap Battle
+- Best Vocalist
+- Best Producer
+- Best DJ
+- Afrobeat Star
+- Gospel Challenge
+- Rising Star
+
+Include:
+
+- Voting
+- Judges
+- Rankings
+- Prize pool
+- Countdown timer
+- Live leaderboard
+
+AI Features (Placeholder)
+
+Design interfaces for future AI tools:
+
+- AI Artist Manager
+- AI Bio Generator
+- AI Press Kit Builder
+- AI Career Advisor
+- AI Music Promotion Assistant
+- AI Tour Planner
+
+Use placeholder functionality for the MVP.
+
+Dashboards
+
+Artist Dashboard
+
+- Earnings
+- Bookings
+- Followers
+- Music uploads
+- Sales
+- Analytics
+- XP
+- Level
+- Notifications
+
+Organizer Dashboard
+
+- Events
+- Revenue
+- Ticket sales
+- Artists booked
+- Analytics
+
+Admin Dashboard
+
+- User management
+- Artist verification
+- Contest management
+- Platform analytics
+- Reports
+- Revenue overview
+
+Notifications
+
+Beautiful notification center supporting:
+
+- New followers
+- Booking requests
+- Event reminders
+- Competition updates
+- Ticket purchases
+- Messages
+- Rewards
+
+Authentication
+
+Support:
+
+- Email
+- Google
+- Apple
+- Facebook
+
+Role selection:
+
+- Artist
+- Fan
+- Event Organizer
+- Brand
+- Producer
+- DJ
+- Administrator
+
+Technology Stack
+
+- React
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- Shadcn UI
+- React Router
+- Firebase Authentication
+- Firebase Firestore (or Supabase)
+- Cloud Storage
+- Stripe-ready payment architecture
+- Responsive architecture
+- Component-based design
+
+UI Quality
+
+Do not copy Spotify or SoundCloud.
+
+Create a fresh identity with:
+
+- Floating glass cards
+- Dynamic gradients
+- Interactive maps
+- Animated statistics
+- Cinematic hero
+- Rich artist cards
+- Smooth loading animations
+- Modern dashboards
+- Elegant forms
+- Premium navigation
+- Sticky header
+- Floating action buttons
+- Command palette (Ctrl + K)
+- Beautiful empty states
+- Skeleton loaders
+
+Branding
+
+Create a memorable premium identity around empowering independent artists worldwide. Every page should reinforce the mission:
+
+"Discover. Perform. Earn. Grow."
+
+The finished MVP should look production-ready, scalable, visually stunning, and investor-ready, with clean, maintainable code and a modular architecture that can easily evolve into a full SaaS platform.

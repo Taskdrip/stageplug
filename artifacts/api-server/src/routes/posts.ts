@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc, asc } from "drizzle-orm";
 import { db, postsTable, postLikesTable, commentsTable, usersTable } from "@workspace/db";
 import { requireAuth, optionalAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 
