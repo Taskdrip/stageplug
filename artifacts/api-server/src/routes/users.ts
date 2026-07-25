@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import {
   db,
   usersTable,
@@ -7,6 +7,16 @@ import {
   userBadgesTable,
   artistProfilesTable,
 } from "@workspace/db";
+
+/** Resolve an artist profile ID → the user ID stored in followsTable.
+ *  Returns null when the profile doesn't exist. */
+async function resolveArtistUserId(profileId: number): Promise<number | null> {
+  const [profile] = await db
+    .select({ userId: artistProfilesTable.userId })
+    .from(artistProfilesTable)
+    .where(eq(artistProfilesTable.id, profileId));
+  return profile?.userId ?? null;
+}
 import { requireAuth, optionalAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
@@ -68,26 +78,32 @@ router.get("/users/:userId", async (req, res): Promise<void> => {
   });
 });
 
-// POST /users/me/follow/:artistId
+// POST /users/me/follow/:artistId  (:artistId is the artist PROFILE id)
 router.post("/users/me/follow/:artistId", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
-  const artistId = parseInt(Array.isArray(req.params.artistId) ? req.params.artistId[0] : req.params.artistId, 10);
-  // Check if already following
+  const profileId = parseInt(Array.isArray(req.params.artistId) ? req.params.artistId[0] : req.params.artistId, 10);
+  // Translate profile id → user id (the canonical key stored in followsTable)
+  const followingUserId = await resolveArtistUserId(profileId);
+  if (!followingUserId) { res.status(404).json({ error: "Artist not found" }); return; }
+
   const existing = await db.select().from(followsTable)
-    .where(eq(followsTable.followerId, req.dbUserId!));
-  const alreadyFollowing = existing.find((f) => f.followingId === artistId);
-  if (!alreadyFollowing) {
-    await db.insert(followsTable).values({ followerId: req.dbUserId!, followingId: artistId });
-    // Award XP
+    .where(and(eq(followsTable.followerId, req.dbUserId!), eq(followsTable.followingId, followingUserId)));
+  if (existing.length === 0) {
+    await db.insert(followsTable).values({ followerId: req.dbUserId!, followingId: followingUserId });
+    // Award XP to the follower
     await db.update(usersTable).set({ xp: sql`${usersTable.xp} + 5` }).where(eq(usersTable.id, req.dbUserId!));
   }
   res.json({ following: true });
 });
 
-// DELETE /users/me/follow/:artistId
+// DELETE /users/me/follow/:artistId  (:artistId is the artist PROFILE id)
 router.delete("/users/me/follow/:artistId", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
-  const artistId = parseInt(Array.isArray(req.params.artistId) ? req.params.artistId[0] : req.params.artistId, 10);
+  const profileId = parseInt(Array.isArray(req.params.artistId) ? req.params.artistId[0] : req.params.artistId, 10);
+  // Translate profile id → user id
+  const followingUserId = await resolveArtistUserId(profileId);
+  if (!followingUserId) { res.status(404).json({ error: "Artist not found" }); return; }
+
   await db.delete(followsTable)
-    .where(eq(followsTable.followerId, req.dbUserId!));
+    .where(and(eq(followsTable.followerId, req.dbUserId!), eq(followsTable.followingId, followingUserId)));
   res.json({ following: false });
 });
 

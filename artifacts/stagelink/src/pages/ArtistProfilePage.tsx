@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Button } from "@/components/ui/button";
@@ -7,18 +7,73 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   CheckCircle2, MapPin, Users, Star, 
   Instagram, Twitter, Youtube, Play, Music2, 
-  CalendarDays, MessageSquare, Plus
+  CalendarDays, MessageSquare, Plus, UserPlus, UserCheck, Loader2
 } from "lucide-react";
 import { useGetArtist, useGetArtistReviews } from "@workspace/api-client-react";
+import { useUser } from "@clerk/react";
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+async function apiFetch(path: string, opts?: RequestInit) {
+  const r = await fetch(`${basePath}${path}`, {
+    ...opts,
+    headers: { "Content-Type": "application/json", ...(opts?.headers ?? {}) },
+    credentials: "include",
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || `API error ${r.status}`);
+  return data;
+}
 
 export default function ArtistProfilePage() {
   const params = useParams();
   const artistId = parseInt(params.id || "0");
+  const { isSignedIn } = useUser();
   
   const { data: artist, isLoading: artistLoading } = useGetArtist(artistId, { query: { enabled: !!artistId } });
   const { data: reviews } = useGetArtistReviews(artistId, { query: { enabled: !!artistId } });
   
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Follow state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followerCount, setFollowerCount] = useState<number | null>(null);
+
+  // Check if already following when artist loads
+  useEffect(() => {
+    if (!isSignedIn || !artistId) return;
+    apiFetch("/api/users/me/following")
+      .then((list: { id: number }[]) => {
+        setIsFollowing(list.some((a) => a.id === artistId));
+      })
+      .catch(() => {});
+  }, [isSignedIn, artistId]);
+
+  // Sync local follower count with API data
+  useEffect(() => {
+    if (artist) setFollowerCount(artist.followersCount);
+  }, [artist]);
+
+  async function handleFollow() {
+    if (!isSignedIn) return;
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await apiFetch(`/api/users/me/follow/${artistId}`, { method: "DELETE" });
+        setIsFollowing(false);
+        setFollowerCount((c) => (c !== null ? Math.max(0, c - 1) : null));
+      } else {
+        await apiFetch(`/api/users/me/follow/${artistId}`, { method: "POST" });
+        setIsFollowing(true);
+        setFollowerCount((c) => (c !== null ? c + 1 : null));
+      }
+    } catch {
+      // silently revert — UI already stable
+    } finally {
+      setFollowLoading(false);
+    }
+  }
 
   if (artistLoading) {
     return (
@@ -81,7 +136,7 @@ export default function ArtistProfilePage() {
                 <MapPin className="w-4 h-4" /> {artist.city ? `${artist.city}, ` : ''}{artist.country}
               </span>
               <span className="flex items-center gap-1">
-                <Users className="w-4 h-4" /> {artist.followersCount.toLocaleString()} followers
+                <Users className="w-4 h-4" /> {(followerCount ?? artist.followersCount).toLocaleString()} followers
               </span>
               <span className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-500" /> {artist.rating.toFixed(1)} ({artist.reviewCount} reviews)
@@ -90,9 +145,28 @@ export default function ArtistProfilePage() {
           </div>
 
           <div className="flex gap-3 md:pb-6">
-            <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10 backdrop-blur-md">
-              Follow
-            </Button>
+            {isSignedIn && (
+              <Button
+                size="lg"
+                variant={isFollowing ? "default" : "outline"}
+                className={
+                  isFollowing
+                    ? "bg-primary/20 hover:bg-red-500/20 border border-primary/40 hover:border-red-500/40 text-primary hover:text-red-400 transition-all gap-2"
+                    : "border-white/20 hover:bg-white/10 backdrop-blur-md gap-2"
+                }
+                onClick={handleFollow}
+                disabled={followLoading}
+              >
+                {followLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : isFollowing ? (
+                  <UserCheck className="w-4 h-4" />
+                ) : (
+                  <UserPlus className="w-4 h-4" />
+                )}
+                {isFollowing ? "Following" : "Follow"}
+              </Button>
+            )}
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25">
               Book Now
             </Button>

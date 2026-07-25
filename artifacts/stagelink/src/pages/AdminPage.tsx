@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import {
   Ticket, CalendarDays, Users, DollarSign, TrendingUp,
   Search, RefreshCw, ChevronDown, Shield, QrCode,
-  CheckCircle, XCircle, Clock, AlertCircle, Eye
+  CheckCircle, XCircle, Clock, AlertCircle, Eye,
+  UserCog, Crown, User
 } from "lucide-react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,17 @@ interface AdminBooking {
   createdAt: string;
 }
 
+interface AdminUser {
+  id: number;
+  clerkId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  role: string;
+  xp: number;
+  level: number;
+  createdAt: string;
+}
+
 /* ─── Stat card ─────────────────────────────────────── */
 function StatCard({ label, value, icon: Icon, color, sub }: {
   label: string; value: string | number; icon: React.ElementType; color: string; sub?: string;
@@ -113,12 +125,29 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/* ─── Role badge ─────────────────────────────────────── */
+function RoleBadge({ role }: { role: string }) {
+  if (role === "admin") {
+    return (
+      <Badge className="bg-primary/15 text-primary border-primary/25 border flex items-center gap-1 px-2 py-0.5 text-xs font-medium">
+        <Crown className="w-3 h-3" /> Admin
+      </Badge>
+    );
+  }
+  return (
+    <Badge className="bg-white/8 text-white/55 border-white/10 border flex items-center gap-1 px-2 py-0.5 text-xs font-medium">
+      <User className="w-3 h-3" /> {role}
+    </Badge>
+  );
+}
+
 /* ─── Main page ─────────────────────────────────────── */
 export default function AdminPage() {
   const [tab, setTab] = useState<"tickets" | "bookings" | "users">("tickets");
   const [stats, setStats] = useState<Stats | null>(null);
   const [tickets, setTickets] = useState<TicketOrder[]>([]);
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [search, setSearch] = useState("");
@@ -127,14 +156,16 @@ export default function AdminPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, t, b] = await Promise.all([
+      const [s, t, b, u] = await Promise.all([
         apiFetch("/api/admin/stats"),
         apiFetch("/api/admin/tickets"),
         apiFetch("/api/admin/bookings"),
+        apiFetch("/api/admin/users"),
       ]);
       setStats(s);
       setTickets(t);
       setBookings(b);
+      setUsers(u);
     } catch (e: any) {
       if (e.message?.includes("403") || e.message?.toLowerCase().includes("forbidden")) {
         setForbidden(true);
@@ -156,6 +187,19 @@ export default function AdminPage() {
       toast({ title: "Booking updated", description: `Status changed to ${status}` });
     } catch {
       toast({ title: "Error", description: "Failed to update booking status", variant: "destructive" });
+    }
+  }
+
+  async function updateUserRole(userId: number, role: string) {
+    try {
+      await apiFetch(`/api/admin/users/${userId}/role`, {
+        method: "PATCH",
+        body: JSON.stringify({ role }),
+      });
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role } : u));
+      toast({ title: "Role updated", description: `User role changed to ${role}` });
+    } catch {
+      toast({ title: "Error", description: "Failed to update user role", variant: "destructive" });
     }
   }
 
@@ -187,6 +231,12 @@ export default function AdminPage() {
     b.clientName.toLowerCase().includes(search.toLowerCase()) ||
     b.eventType.toLowerCase().includes(search.toLowerCase()) ||
     b.location.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const filteredUsers = users.filter(u =>
+    !search ||
+    u.displayName.toLowerCase().includes(search.toLowerCase()) ||
+    u.role.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -231,7 +281,7 @@ export default function AdminPage() {
         {/* Tabs + Search */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex gap-1 bg-white/5 rounded-xl p-1 border border-white/8">
-            {(["tickets", "bookings"] as const).map((t) => (
+            {(["tickets", "bookings", "users"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => { setTab(t); setSearch(""); }}
@@ -239,7 +289,11 @@ export default function AdminPage() {
                   tab === t ? "bg-primary text-white shadow-lg shadow-primary/25" : "text-white/55 hover:text-white"
                 }`}
               >
-                {t === "tickets" ? `Ticket Orders (${tickets.length})` : `Bookings (${bookings.length})`}
+                {t === "tickets"
+                  ? `Ticket Orders (${tickets.length})`
+                  : t === "bookings"
+                  ? `Bookings (${bookings.length})`
+                  : `Users (${users.length})`}
               </button>
             ))}
           </div>
@@ -469,16 +523,121 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Message about setting admin role */}
-        <div className="rounded-xl bg-primary/5 border border-primary/15 p-4 text-sm text-white/55">
-          <p className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-primary flex-shrink-0" />
-            To grant admin access, update a user's role to <code className="bg-white/10 px-1.5 py-0.5 rounded text-primary text-xs font-mono">admin</code> in the database:
-            <code className="bg-white/10 px-2 py-0.5 rounded text-white/70 text-xs font-mono">
-              UPDATE users SET role = 'admin' WHERE id = &lt;user_id&gt;;
-            </code>
-          </p>
-        </div>
+        {/* Users Table */}
+        {tab === "users" && (
+          <div className="rounded-2xl border border-white/10 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/3">
+                    <th className="text-left px-4 py-3 text-white/45 font-medium">User</th>
+                    <th className="text-center px-4 py-3 text-white/45 font-medium">Role</th>
+                    <th className="text-center px-4 py-3 text-white/45 font-medium">Level</th>
+                    <th className="text-right px-4 py-3 text-white/45 font-medium">XP</th>
+                    <th className="text-left px-4 py-3 text-white/45 font-medium">Joined</th>
+                    <th className="text-center px-4 py-3 text-white/45 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i} className="border-b border-white/5">
+                        {Array.from({ length: 6 }).map((_, j) => (
+                          <td key={j} className="px-4 py-3">
+                            <div className="h-4 bg-white/8 rounded animate-pulse" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-12 text-center text-white/35">
+                        {search ? "No users match your search" : "No users yet"}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredUsers.map((u) => (
+                      <tr key={u.id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={u.avatarUrl ?? undefined} />
+                              <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                                {u.displayName.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-white font-medium text-xs">{u.displayName}</p>
+                              <p className="text-white/35 text-[10px] font-mono">#{u.id}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <RoleBadge role={u.role} />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="text-white/70 font-medium">{u.level}</span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="text-primary font-semibold text-xs">{u.xp.toLocaleString()}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-white/45 text-xs">
+                            {new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-white/55 hover:text-white hover:bg-white/10 gap-1"
+                              >
+                                <UserCog className="w-3 h-3" />
+                                <ChevronDown className="w-3 h-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem
+                                onClick={() => updateUserRole(u.id, "admin")}
+                                disabled={u.role === "admin"}
+                                className="gap-2"
+                              >
+                                <Crown className="w-3 h-3 text-primary" /> Make Admin
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => updateUserRole(u.id, "fan")}
+                                disabled={u.role === "fan"}
+                                className="gap-2"
+                              >
+                                <User className="w-3 h-3" /> Set as Fan
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => updateUserRole(u.id, "artist")}
+                                disabled={u.role === "artist"}
+                                className="gap-2"
+                              >
+                                <User className="w-3 h-3" /> Set as Artist
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {!loading && filteredUsers.length > 0 && (
+              <div className="px-4 py-3 border-t border-white/8 bg-white/2 text-xs text-white/35 flex justify-between">
+                <span>{filteredUsers.length} users</span>
+                <span>{users.filter(u => u.role === "admin").length} admin{users.filter(u => u.role === "admin").length !== 1 ? "s" : ""}</span>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </PageTransition>
   );

@@ -67,17 +67,7 @@ router.post("/events", requireAuth, async (req: AuthenticatedRequest, res): Prom
   res.status(201).json(formatEvent(event, user.displayName));
 });
 
-// GET /events/:eventId
-router.get("/events/:eventId", async (req, res): Promise<void> => {
-  const eventId = parseInt(Array.isArray(req.params.eventId) ? req.params.eventId[0] : req.params.eventId, 10);
-  const [row] = await db.select().from(eventsTable)
-    .leftJoin(usersTable, eq(eventsTable.organizerId, usersTable.id))
-    .where(eq(eventsTable.id, eventId));
-  if (!row) { res.status(404).json({ error: "Event not found" }); return; }
-  res.json(formatEvent(row.events, row.users?.displayName));
-});
-
-// GET /events/me/tickets
+// GET /events/me/tickets  — must be before /events/:eventId so "me" isn't parsed as an id
 router.get("/events/me/tickets", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
   const rows = await db
     .select()
@@ -102,6 +92,16 @@ router.get("/events/me/tickets", requireAuth, async (req: AuthenticatedRequest, 
       purchasedAt: t.purchasedAt.toISOString(),
     }))
   );
+});
+
+// GET /events/:eventId
+router.get("/events/:eventId", async (req, res): Promise<void> => {
+  const eventId = parseInt(Array.isArray(req.params.eventId) ? req.params.eventId[0] : req.params.eventId, 10);
+  const [row] = await db.select().from(eventsTable)
+    .leftJoin(usersTable, eq(eventsTable.organizerId, usersTable.id))
+    .where(eq(eventsTable.id, eventId));
+  if (!row) { res.status(404).json({ error: "Event not found" }); return; }
+  res.json(formatEvent(row.events, row.users?.displayName));
 });
 
 // POST /events/:eventId/buy-ticket
