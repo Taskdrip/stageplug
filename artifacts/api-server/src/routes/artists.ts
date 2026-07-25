@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, and, gte, lte, ilike } from "drizzle-orm";
+import { eq, sql, and, gte, lte, ilike, asc, desc } from "drizzle-orm";
 import {
   db, artistProfilesTable, usersTable, reviewsTable, tracksTable,
   followsTable, userBadgesTable,
@@ -65,7 +65,7 @@ router.get("/artists", optionalAuth, async (req: AuthenticatedRequest, res): Pro
 router.get("/artists/trending", async (_req, res): Promise<void> => {
   const profiles = await db.select().from(artistProfilesTable)
     .leftJoin(usersTable, eq(artistProfilesTable.userId, usersTable.id))
-    .orderBy(sql`${artistProfilesTable.rating} desc`)
+    .orderBy(desc(artistProfilesTable.rating))
     .limit(12);
 
   const result = await Promise.all(profiles.map(async ({ artist_profiles: p, users: u }) => {
@@ -80,7 +80,7 @@ router.get("/artists/trending", async (_req, res): Promise<void> => {
 router.get("/artists/rising", async (_req, res): Promise<void> => {
   const profiles = await db.select().from(artistProfilesTable)
     .leftJoin(usersTable, eq(artistProfilesTable.userId, usersTable.id))
-    .orderBy(sql`${artistProfilesTable.created_at} desc`)
+    .orderBy(desc(artistProfilesTable.createdAt))
     .limit(12);
 
   const result = await Promise.all(profiles.map(async ({ artist_profiles: p, users: u }) => {
@@ -224,7 +224,7 @@ router.get("/artists/:artistId/reviews", async (req, res): Promise<void> => {
   const reviews = await db.select().from(reviewsTable)
     .leftJoin(usersTable, eq(reviewsTable.reviewerId, usersTable.id))
     .where(eq(reviewsTable.artistId, artistId))
-    .orderBy(sql`${reviewsTable.created_at} desc`);
+    .orderBy(desc(reviewsTable.createdAt));
 
   res.json(reviews.map(({ reviews: r, users: u }) => ({
     id: r.id, artistId: r.artistId, reviewerId: r.reviewerId,

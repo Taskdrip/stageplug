@@ -9,7 +9,7 @@ async function getTopEntries(competitionId: number, limit = 10) {
   const entries = await db.select().from(competitionEntriesTable)
     .leftJoin(usersTable, eq(competitionEntriesTable.artistId, usersTable.id))
     .where(eq(competitionEntriesTable.competitionId, competitionId))
-    .orderBy(sql`${competitionEntriesTable.votes} desc`)
+    .orderBy(desc(competitionEntriesTable.votes))
     .limit(limit);
 
   return entries.map(({ competition_entries: e, users: u }, idx) => ({
@@ -22,7 +22,7 @@ async function getTopEntries(competitionId: number, limit = 10) {
 // GET /competitions
 router.get("/competitions", async (_req, res): Promise<void> => {
   const competitions = await db.select().from(competitionsTable)
-    .orderBy(sql`${competitionsTable.created_at} desc`);
+    .orderBy(desc(competitionsTable.createdAt));
 
   const result = await Promise.all(competitions.map(async (c) => {
     const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(competitionEntriesTable).where(eq(competitionEntriesTable.competitionId, c.id));

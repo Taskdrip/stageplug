@@ -14,7 +14,7 @@ router.get("/posts", optionalAuth, async (req: AuthenticatedRequest, res): Promi
 
   const rows = await db.select().from(postsTable)
     .leftJoin(usersTable, eq(postsTable.authorId, usersTable.id))
-    .orderBy(sql`${postsTable.created_at} desc`)
+    .orderBy(desc(postsTable.createdAt))
     .limit(limitNum).offset(offset);
 
   const result = await Promise.all(rows.map(async ({ posts: p, users: u }) => {
@@ -87,7 +87,7 @@ router.get("/posts/:postId/comments", async (req, res): Promise<void> => {
   const rows = await db.select().from(commentsTable)
     .leftJoin(usersTable, eq(commentsTable.authorId, usersTable.id))
     .where(eq(commentsTable.postId, postId))
-    .orderBy(sql`${commentsTable.created_at} asc`);
+    .orderBy(asc(commentsTable.createdAt));
 
   res.json(rows.map(({ comments: c, users: u }) => ({
     id: c.id, postId: c.postId, authorId: c.authorId,

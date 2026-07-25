@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, gt, asc } from "drizzle-orm";
+import { eq, sql, gt, asc, desc } from "drizzle-orm";
 import { db, eventsTable, ticketsTable, usersTable } from "@workspace/db";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/requireAuth";
 import crypto from "crypto";
@@ -24,7 +24,7 @@ router.get("/events", async (req, res): Promise<void> => {
   const { city, country, upcoming, page = "1", limit = "20" } = req.query as Record<string, string>;
   let events = await db.select().from(eventsTable)
     .leftJoin(usersTable, eq(eventsTable.organizerId, usersTable.id))
-    .orderBy(sql`${eventsTable.event_date} asc`).limit(50);
+    .orderBy(asc(eventsTable.eventDate)).limit(50);
 
   let filtered = events;
   if (city) filtered = filtered.filter(({ events: e }) => e.city.toLowerCase().includes(city.toLowerCase()));
@@ -48,7 +48,7 @@ router.get("/events/upcoming", async (_req, res): Promise<void> => {
   const events = await db.select().from(eventsTable)
     .leftJoin(usersTable, eq(eventsTable.organizerId, usersTable.id))
     .where(eq(eventsTable.status, "upcoming"))
-    .orderBy(sql`${eventsTable.event_date} asc`).limit(10);
+    .orderBy(asc(eventsTable.eventDate)).limit(10);
   res.json(events.map(({ events: e, users: u }) => formatEvent(e, u?.displayName)));
 });
 

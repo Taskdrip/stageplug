@@ -9,9 +9,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/layout/Navbar";
 import { CommandPalette } from "@/components/layout/CommandPalette";
+import { MusicBackground } from "@/components/MusicBackground";
 import NotFound from "@/pages/not-found";
 
-// Page Imports (will be created soon)
 import HomePage from "@/pages/HomePage";
 import DiscoverPage from "@/pages/DiscoverPage";
 import ArtistProfilePage from "@/pages/ArtistProfilePage";
@@ -25,13 +25,11 @@ import LeaderboardPage from "@/pages/LeaderboardPage";
 import AIStudioPage from "@/pages/AIStudioPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import SettingsPage from "@/pages/SettingsPage";
+import OnboardingPage from "@/pages/OnboardingPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
+    queries: { retry: false, refetchOnWindowFocus: false },
   },
 });
 
@@ -48,85 +46,115 @@ function stripBase(path: string): string {
 
 if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY');
 
+/* ─── Clerk visual theme ────────────────────────────── */
 const clerkAppearance = {
   theme: shadcn,
   cssLayerName: "clerk",
+  options: {
+    logoPlacement: "inside" as const,
+    logoLinkUrl: basePath || "/",
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
   variables: {
     colorPrimary: "hsl(263 70% 50%)",
     colorForeground: "hsl(210 40% 96%)",
     colorMutedForeground: "hsl(215 20% 65%)",
     colorDanger: "hsl(0 62% 50%)",
-    colorBackground: "hsl(222 25% 11%)",
+    colorBackground: "hsl(222 25% 9%)",
     colorInput: "hsl(222 25% 13%)",
     colorInputForeground: "hsl(210 40% 96%)",
     colorNeutral: "hsl(217 15% 18%)",
     fontFamily: "Outfit, Inter, sans-serif",
-    borderRadius: "0.5rem",
+    borderRadius: "0.75rem",
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-[#16171d] rounded-2xl w-[440px] max-w-full overflow-hidden border border-white/10 shadow-2xl shadow-primary/20",
-    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "text-white font-bold tracking-tight text-2xl",
-    headerSubtitle: "text-white/60",
+    cardBox: "rounded-3xl w-[460px] max-w-full overflow-hidden border border-white/10 shadow-2xl shadow-primary/25",
+    card: "!shadow-none !border-0 !rounded-none",
+    footer: "!shadow-none !border-0 !rounded-none",
+    headerTitle: "text-white font-heading font-bold tracking-tight text-2xl",
+    headerSubtitle: "text-white/55",
     socialButtonsBlockButtonText: "text-white font-medium",
-    formFieldLabel: "text-white/80 font-medium",
+    formFieldLabel: "text-white/75 font-medium",
     footerActionLink: "text-primary hover:text-primary/80 font-semibold",
-    footerActionText: "text-white/60",
-    dividerText: "text-white/40",
+    footerActionText: "text-white/55",
+    dividerText: "text-white/35",
     identityPreviewEditButton: "text-primary hover:text-primary/80",
-    formFieldSuccessText: "text-green-400",
+    formFieldSuccessText: "text-emerald-400",
     alertText: "text-red-400",
-    logoBox: "mx-auto mb-4",
-    logoImage: "brightness-0 invert", // make logo white
-    socialButtonsBlockButton: "bg-white/5 border-white/10 hover:bg-white/10 transition-colors",
-    formButtonPrimary: "bg-primary hover:bg-primary/90 text-white transition-colors",
-    formFieldInput: "bg-black/20 border-white/10 text-white focus:border-primary/50 focus:ring-primary/50",
+    logoBox: "mx-auto mb-2",
+    logoImage: "brightness-0 invert",
+    socialButtonsBlockButton: "bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-200",
+    formButtonPrimary: "bg-primary hover:bg-primary/90 text-white transition-all duration-200 shadow-[0_0_20px_rgba(124,58,237,0.35)]",
+    formFieldInput: "bg-black/25 border-white/10 text-white focus:border-primary/60 focus:ring-primary/30 placeholder:text-white/25",
     footerAction: "bg-transparent",
     dividerLine: "bg-white/10",
-    alert: "bg-red-500/10 border border-red-500/20 text-red-400",
-    otpCodeFieldInput: "bg-black/20 border-white/10 text-white",
-    formFieldRow: "mb-4",
-    main: "p-8",
+    alert: "bg-red-500/10 border border-red-500/20",
+    otpCodeFieldInput: "bg-black/25 border-white/10 text-white text-center",
+    formFieldRow: "mb-3",
+    main: "px-8 py-6",
   },
 };
 
-function HomeRedirect() {
-  return (
-    <>
-      <Show when="signed-in">
-        <Redirect to="/dashboard" />
-      </Show>
-      <Show when="signed-out">
-        <HomePage />
-      </Show>
-    </>
-  );
-}
-
+/* ─── Sign-in page ───────────────────────────────────── */
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
+    <div className="fixed inset-0 z-40 flex items-center justify-center overflow-y-auto">
+      <MusicBackground />
+      {/* Branding strip */}
+      <div className="absolute top-6 left-6 z-20 flex items-center gap-2.5">
+        <img src={`${basePath}/logo.svg`} alt="StageLink" className="w-7 h-7" />
+        <span className="text-white font-heading font-bold text-base tracking-tight">StageLink</span>
+      </div>
+      {/* Tagline */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 hidden md:block">
+        <p className="text-white/30 text-sm tracking-widest uppercase font-medium">
+          Discover · Perform · Earn · Grow
+        </p>
+      </div>
+      {/* Clerk form */}
       <div className="relative z-10 px-4 w-full flex justify-center">
-        <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+        <SignIn
+          routing="path"
+          path={`${basePath}/sign-in`}
+          signUpUrl={`${basePath}/sign-up`}
+          fallbackRedirectUrl={`${basePath}/dashboard`}
+        />
       </div>
     </div>
   );
 }
 
+/* ─── Sign-up page ───────────────────────────────────── */
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
-      <div className="relative z-10 px-4 w-full flex justify-center py-12">
-        <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+    <div className="fixed inset-0 z-40 flex items-center justify-center overflow-y-auto">
+      <MusicBackground />
+      {/* Branding strip */}
+      <div className="absolute top-6 left-6 z-20 flex items-center gap-2.5">
+        <img src={`${basePath}/logo.svg`} alt="StageLink" className="w-7 h-7" />
+        <span className="text-white font-heading font-bold text-base tracking-tight">StageLink</span>
+      </div>
+      {/* Headline over form */}
+      <div className="absolute top-1/2 -translate-y-[220px] left-1/2 -translate-x-1/2 z-20 text-center w-full px-4 pointer-events-none hidden md:block">
+        <p className="text-white/20 text-xs tracking-widest uppercase font-medium">
+          Where independent artists build global careers
+        </p>
+      </div>
+      {/* Clerk form */}
+      <div className="relative z-10 px-4 w-full flex justify-center py-16">
+        <SignUp
+          routing="path"
+          path={`${basePath}/sign-up`}
+          signInUrl={`${basePath}/sign-in`}
+          forceRedirectUrl={`${basePath}/onboarding`}
+        />
       </div>
     </div>
   );
 }
 
+/* ─── Cache invalidator on user switch ───────────────── */
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
@@ -134,10 +162,7 @@ function ClerkQueryClientCacheInvalidator() {
   useEffect(() => {
     const unsubscribe = addListener(({ user }) => {
       const userId = user?.id ?? null;
-      if (
-        prevUserIdRef.current !== undefined &&
-        prevUserIdRef.current !== userId
-      ) {
+      if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
         queryClient.clear();
       }
       prevUserIdRef.current = userId;
@@ -148,6 +173,17 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
+/* ─── Home redirect ──────────────────────────────────── */
+function HomeRedirect() {
+  return (
+    <>
+      <Show when="signed-in"><Redirect to="/dashboard" /></Show>
+      <Show when="signed-out"><HomePage /></Show>
+    </>
+  );
+}
+
+/* ─── App router ─────────────────────────────────────── */
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
@@ -158,19 +194,11 @@ function ClerkProviderWithRoutes() {
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
+      signUpForceRedirectUrl={`${basePath}/onboarding`}
+      signInFallbackRedirectUrl={`${basePath}/dashboard`}
       localization={{
-        signIn: {
-          start: {
-            title: "Welcome back",
-            subtitle: "Sign in to access your StageLink account",
-          },
-        },
-        signUp: {
-          start: {
-            title: "Join StageLink",
-            subtitle: "Create your platform account",
-          },
-        },
+        signIn: { start: { title: "Welcome back", subtitle: "Sign in to your StageLink account" } },
+        signUp: { start: { title: "Join StageLink", subtitle: "Create your account and start your journey" } },
       }}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
@@ -185,6 +213,14 @@ function ClerkProviderWithRoutes() {
               <Route path="/" component={HomeRedirect} />
               <Route path="/sign-in/*?" component={SignInPage} />
               <Route path="/sign-up/*?" component={SignUpPage} />
+
+              {/* Onboarding — protected */}
+              <Route path="/onboarding">
+                <Show when="signed-in"><OnboardingPage /></Show>
+                <Show when="signed-out"><Redirect to="/sign-up" /></Show>
+              </Route>
+
+              {/* Public routes */}
               <Route path="/discover" component={DiscoverPage} />
               <Route path="/artists/:id" component={ArtistProfilePage} />
               <Route path="/events" component={EventsPage} />
@@ -193,8 +229,8 @@ function ClerkProviderWithRoutes() {
               <Route path="/community" component={CommunityPage} />
               <Route path="/leaderboard" component={LeaderboardPage} />
               <Route path="/ai-studio" component={AIStudioPage} />
-              
-              {/* Protected Routes */}
+
+              {/* Protected routes */}
               <Route path="/dashboard">
                 <Show when="signed-in"><DashboardPage /></Show>
                 <Show when="signed-out"><Redirect to="/sign-in" /></Show>
@@ -211,7 +247,7 @@ function ClerkProviderWithRoutes() {
                 <Show when="signed-in"><SettingsPage /></Show>
                 <Show when="signed-out"><Redirect to="/sign-in" /></Show>
               </Route>
-              
+
               <Route component={NotFound} />
             </Switch>
           </main>
@@ -221,7 +257,8 @@ function ClerkProviderWithRoutes() {
   );
 }
 
-function App() {
+/* ─── Root ───────────────────────────────────────────── */
+export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <TooltipProvider>
@@ -233,5 +270,3 @@ function App() {
     </ThemeProvider>
   );
 }
-
-export default App;
