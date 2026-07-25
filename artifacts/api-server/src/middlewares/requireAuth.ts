@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 
 export interface AuthenticatedRequest extends Request {
   dbUserId?: number;
+  dbUserRole?: string;
   clerkId?: string;
 }
 
@@ -47,6 +48,7 @@ export async function requireAuth(
   }
 
   req.dbUserId = user.id;
+  req.dbUserRole = user.role;
   next();
 }
 
@@ -78,7 +80,10 @@ export async function optionalAuth(
       }
       [user] = await db.insert(usersTable).values({ clerkId, displayName, avatarUrl, role: "fan" }).returning();
     }
-    if (user) req.dbUserId = user.id;
+    if (user) {
+      req.dbUserId = user.id;
+      req.dbUserRole = user.role;
+    }
   }
   next();
 }

@@ -77,6 +77,33 @@ router.get("/events/:eventId", async (req, res): Promise<void> => {
   res.json(formatEvent(row.events, row.users?.displayName));
 });
 
+// GET /events/me/tickets
+router.get("/events/me/tickets", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const rows = await db
+    .select()
+    .from(ticketsTable)
+    .leftJoin(eventsTable, eq(ticketsTable.eventId, eventsTable.id))
+    .where(eq(ticketsTable.userId, req.dbUserId!))
+    .orderBy(desc(ticketsTable.purchasedAt));
+
+  res.json(
+    rows.map(({ tickets: t, events: e }) => ({
+      id: t.id,
+      eventId: t.eventId,
+      eventTitle: e?.title ?? "Unknown Event",
+      eventDate: e?.eventDate?.toISOString() ?? null,
+      venue: e?.venue ?? null,
+      city: e?.city ?? null,
+      coverImageUrl: e?.coverImageUrl ?? null,
+      ticketPrice: e?.ticketPrice ?? 0,
+      eventStatus: e?.status ?? null,
+      quantity: t.quantity,
+      qrCode: t.qrCode,
+      purchasedAt: t.purchasedAt.toISOString(),
+    }))
+  );
+});
+
 // POST /events/:eventId/buy-ticket
 router.post("/events/:eventId/buy-ticket", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
   const eventId = parseInt(Array.isArray(req.params.eventId) ? req.params.eventId[0] : req.params.eventId, 10);

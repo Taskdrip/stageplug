@@ -10,6 +10,7 @@ import postsRouter from "./posts";
 import competitionsRouter from "./competitions";
 import notificationsRouter from "./notifications";
 import dashboardRouter from "./dashboard";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -23,5 +24,6 @@ router.use(postsRouter);
 router.use(competitionsRouter);
 router.use(notificationsRouter);
 router.use(dashboardRouter);
+router.use(adminRouter);
 
 export default router;
